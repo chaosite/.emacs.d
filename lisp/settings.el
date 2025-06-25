@@ -103,6 +103,15 @@
 
 ;; Display stuff should go first so that the emacs window would get the right shape
 
+;; aider
+(use-package aider
+  :ensure t
+  :config
+  (setq aider-program (expand-file-name "~/.local/bin/aider")
+        aider-args `("--model" "sonnet" "--no-auto-accept-architect" "--env-file" ,(expand-file-name "~/.config/aider/.env")))
+  (global-set-key (kbd "C-c a") 'aider-transient-menu)
+  (aider-magit-setup-transients))
+
 ;; powerline
 (use-package powerline
   :ensure t
