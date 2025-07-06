@@ -102,10 +102,10 @@
  '(main-line-separator-style 'chamfer)
  '(org-agenda-files '("~/org/agenda/tasks.org"))
  '(package-selected-packages
-   '(all-the-icons-ivy-rich amx auctex-latexmk auto-compile blackout capnp-mode clang-format+ company-quickhelp
-                            counsel-projectile eglot find-file-in-project forge format-all google-c-style
-                            latex-pretty-symbols lua-mode org-jira powerline protobuf-ts-mode python-black pyvenv
-                            rainbow-mode sqlite3 ssh-config-mode string-inflection tide vue-mode web-mode zenburn-theme))
+   '(aider all-the-icons-ivy-rich amx auctex-latexmk auto-compile blackout capnp-mode clang-format+ company-quickhelp
+           consult counsel-projectile eglot find-file-in-project forge format-all google-c-style latex-pretty-symbols
+           lua-mode marginalia nerd-icons-completion orderless org-jira powerline protobuf-ts-mode python-black pyvenv
+           rainbow-mode sqlite3 ssh-config-mode string-inflection tide vertico vue-mode web-mode zenburn-theme))
  '(powerline-color1 "#222912")
  '(powerline-color2 "#09150F")
  '(proof-three-window-mode-policy 'hybrid)

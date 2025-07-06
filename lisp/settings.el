@@ -38,8 +38,7 @@
 (line-number-mode t)
 (column-number-mode t)
 
-;; Always font lock
-(font-lock-mode)
+;; Font lock is enabled by default in modern Emacs
 
 ;; auto-revert all the files
 (global-auto-revert-mode)
@@ -63,19 +62,16 @@
 (eval-after-load "diff-mode"
   '(update-diff-colors))
 
-;; Don't ask before killing a buffer with a running process.  This list holds
-;; hooks to run before killing a buffer, and it has originally contained only
-;; process-kill-buffer-query-function.  In order to restore the default, remove
-;; this line or replace it with: (setq kill-buffer-query-functions
-;; 'process-kill-buffer-query-function)
-(setq kill-buffer-query-functions nil)
+;; Only disable process kill queries, keep other safety checks
+(setq kill-buffer-query-functions
+      (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
 ;; Set firefox as the default browser.
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "firefox")
 
-;; When in text mode, proper line size should be 80.
-(setq-default fill-column 80)
+;; Set consistent fill column
+(setq-default fill-column 119)
 
 ;; Look for passwords in .authinfo.gpg
 (setq auth-sources
@@ -83,6 +79,19 @@
 
 ;; ask for gpg passwords in the minibuffer
 (setq epa-pinentry-mode 'loopback)
+
+;; Essential backup and history configuration
+(setq backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      backup-by-copying t
+      delete-old-versions t
+      kept-new-versions 6
+      kept-old-versions 2
+      version-control t)
+
+;; Enable essential convenience features
+(recentf-mode 1)
+(save-place-mode 1)
+(savehist-mode 1)
 
 ;; use tree-sitter modes
 (setq major-mode-remap-alist
@@ -101,14 +110,21 @@
 
 ;; == Packages ==
 
-;; Display stuff should go first so that the emacs window would get the right shape
-
 ;; aider
 (use-package aider
   :ensure t
   :config
-  (setq aider-program (expand-file-name "~/.local/bin/aider")
-        aider-args `("--model" "sonnet" "--no-auto-accept-architect" "--env-file" ,(expand-file-name "~/.config/aider/.env")))
+  (setq aider-program (or (executable-find "aider")
+                          (expand-file-name "~/.local/bin/aider"))
+        aider-args `("--model" "sonnet"
+                     "--cache-prompts"
+                     "--cache-keepalive-pings" "6"
+                     "--no-auto-commits"
+                     "--attribute-co-authored-by"
+                     "--no-auto-accept-architect"
+;;                     "--lint"
+                     "--lint-cmd" "python: uvx ruff check"
+                     "--env-file" ,(expand-file-name "~/.config/aider/.env")))
   (global-set-key (kbd "C-c a") 'aider-transient-menu)
   (aider-magit-setup-transients))
 
@@ -132,26 +148,6 @@
   :ensure t
   :defer t
   :hook ((python-ts-mode . eglot-ensure)))
-
-;; Python Black formatter
-(use-package python-black
-  :ensure t
-  :demand t
-  :hook (python-ts-mode . python-black-on-save-mode-enable-dwim)
-  :config
-  (setq-default python-black-extra-args '("--line-length" "120")))
-
-;; format-all-the-code
-(use-package format-all
-  :ensure t
-  :commands format-all-mode
-  :hook (prog-mode . format-all-mode)
-  :blackout format-all-mode
-  :config
-  (setq-default format-all-formatters
-                '("Python"
-                  (black "--line-length" "120")
-                  (isort "--line-length=120" "--profile=black"))))
 
 ;; Major mode for Docker files
 (use-package dockerfile-ts-mode
@@ -337,6 +333,7 @@ files in Fundamental mode."
 ;; TypeScript setup
 (use-package flycheck
   :ensure t
+  :defer t
   :blackout flycheck-mode
   :init
   (setq flycheck-check-syntax-automatically '(save mode-enabled)))
@@ -405,9 +402,6 @@ files in Fundamental mode."
 (global-whitespace-mode t)
 (add-function :before-while whitespace-enable-predicate 'prevent-whitespace-mode-for-magit)
 
-(setq-default fill-column 119)
-
-
 ;; Prefer spaces to tabs
 (setq-default indent-tabs-mode nil)
 
@@ -436,78 +430,163 @@ files in Fundamental mode."
         jiralib-update-issue-fields-exclude-list '(components reporter)))
 
 
-;; Ivy and amx
-(use-package amx
+;; vertico/marginalia/consult
+(use-package vertico
   :ensure t
-  :after ivy
-  :config (amx-mode))
+  :bind (:map vertico-map
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)
+              ("C-f" . vertico-exit))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
 
-(use-package ivy
+;; Configure directory extension -- makes find-file work like counsel-find-file
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("<backspace>" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
+(use-package savehist
+  :init (savehist-mode))
+
+(use-package recentf
+  :init (recentf-mode))
+
+(use-package marginalia
+  :after vertico
   :ensure t
-  :bind (("C-c u" . ivy-resume))
-  :demand t ; load immediatly
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+
+(use-package nerd-icons-completion
+  :after marginalia
+  :ensure t
   :config
-  (ivy-mode)
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
-  (setq ivy-use-virtual-buffers t
-        ivy-height 13
-        ivy-count-format "%d/%d "
-        ivy-virtual-abbreviate 'full ; Show the full virtual file paths
-        ivy-extra-directories nil ; default value: ("../" "./")
-        ivy-wrap t
-        ivy-action-wrap t
-        ivy-use-selectable-prompt t)
+(use-package nerd-icons
+  :ensure t)
 
-  ;; modify default search behaviour of ivy
-  (setq ivy-re-builders-alist
-        '((t . ivy--regex-plus)))
-
-  (bind-keys
-   :map ivy-occur-grep-mode-map
-   ("n" . ivy-occur-next-line)
-   ("p" . ivy-occur-previous-line)
-   ("b" . backward-char)
-   ("f" . forward-char)
-   ("v" . ivy-occur-press) ; default f
-   ("RET" . ivy-occur-press))
-  :blackout ivy-mode)
-
-;; Better experience with icons for ivy
-;; https://github.com/seagle0128/all-the-icons-ivy-rich/
-(use-package all-the-icons-ivy-rich
+(use-package orderless
   :ensure t
-  :after (ivy ivy-rich)
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package consult
+  :ensure t
+  ;; Replace bindings. Lazily loaded by `use-package'.
+  :bind (;; C-c bindings in `mode-specific-map'
+         ("C-c M-x" . consult-mode-command)
+         ("C-c h" . consult-history)
+         ("C-c k" . consult-kmacro)
+         ("C-c m" . consult-man)
+         ("C-c i" . consult-info)
+         ([remap Info-search] . consult-info)
+         ;; C-x bindings in `ctl-x-map'
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ;; M-g bindings in `goto-map'
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings in `search-map'
+         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+         ("M-s c" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+
+  ;; Enable automatic preview at point in the *Completions* buffer. This is
+  ;; relevant when you use the default completion UI.
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+
+  ;; The :init configuration is always executed (Not lazy)
+  :init
+
+  ;; Tweak the register preview for `consult-register-load',
+  ;; `consult-register-store' and the built-in commands.  This improves the
+  ;; register formatting, adds thin separator lines, register sorting and hides
+  ;; the window mode line.
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq register-preview-delay 0.5)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
   :config
-  (all-the-icons-ivy-rich-mode 1)
-  (setq all-the-icons-ivy-rich-icon-size 0.8))
 
-;; More friendly interface for ivy
-;; https://github.com/Yevgnen/ivy-rich
-(use-package ivy-rich
-  :ensure t
-  :after (ivy)
-  :hook (counsel-mode . ivy-rich-mode)
-  :config
-  ;; For better performance
-  ;; Better experience with icons
-  (setq ivy-rich-parse-remote-buffer nil))
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key "M-.")
+  ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep consult-man
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   ;; :preview-key "M-."
+   :preview-key '(:debounce 0.4 any))
 
-;; counsel (stuff for ivy)
-(use-package counsel
-  :ensure t
-  :after ivy
-  :bind
-  ("C-x C-f" . counsel-find-file)
-  ("s-g" . counsel-git-grep)
-  :config
-  (setq counsel-switch-buffer-preview-virtual-buffers nil)
-  (counsel-mode)
-  :blackout counsel-mode)
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; "C-+"
 
-(use-package counsel-projectile
-  :ensure t
-  :after (counsel projectile)
-  :hook counsel-mode)
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
+)
+
 
 
 ;; Coq/iris
