@@ -1,4 +1,4 @@
-;;; capnp-mode.el --- major mode for editing Capn' Proto Files
+;;; capnp-mode.el --- major mode for editing Capn' Proto Files  -*- lexical-binding: t; -*-
 
 ;; This is free and unencumbered software released into the public domain.
 

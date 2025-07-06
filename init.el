@@ -67,12 +67,6 @@
 
 ")
 
-;; load theme
-(use-package zenburn-theme
-  :ensure t
-  :config
-  (load-theme 'zenburn t)
-  (enable-theme 'zenburn))
 
 ;; Load keys the last, in order to override bad key bindings
 (require 'keys)
@@ -103,9 +97,10 @@
  '(org-agenda-files '("~/org/agenda/tasks.org"))
  '(package-selected-packages
    '(aider all-the-icons-ivy-rich amx auctex-latexmk auto-compile blackout capnp-mode clang-format+ company-quickhelp
-           consult counsel-projectile eglot find-file-in-project forge format-all google-c-style latex-pretty-symbols
-           lua-mode marginalia nerd-icons-completion orderless org-jira powerline protobuf-ts-mode python-black pyvenv
-           rainbow-mode sqlite3 ssh-config-mode string-inflection tide vertico vue-mode web-mode zenburn-theme))
+           consult corfu counsel-projectile eglot eldoc-box find-file-in-project forge format-all google-c-style
+           latex-pretty-symbols lua-mode marginalia nerd-icons-completion nerd-icons-corfu orderless org-jira powerline
+           protobuf-ts-mode python-black pyvenv rainbow-mode sqlite3 ssh-config-mode string-inflection tide vertico
+           vue-mode web-mode zenburn-theme))
  '(powerline-color1 "#222912")
  '(powerline-color2 "#09150F")
  '(proof-three-window-mode-policy 'hybrid)

@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 (defconst lark-mode-syntax-table
   (let ((table (make-syntax-table)))
     ;; strings
@@ -19,3 +21,5 @@
   :syntax-table lark-mode-syntax-table
   (setq font-lock-defaults '(lark-font-lock-highlights))
   (font-lock-fontify-buffer))
+
+(provide 'lark-mode)
