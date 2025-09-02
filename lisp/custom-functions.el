@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; Functions that I wrote/found on the internet, and are useful.
 
 (defun shell-command-on-region-inplace (start end command)
@@ -90,5 +92,31 @@ environments."
              (+ offset indent))
             (t
              (+ contin indent))))))
+
+(defun check-interpreter-mode-for-current-buffer ()
+  "Check what interpreter-based mode Emacs would use for the current buffer.
+This follows the same logic as `set-auto-mode` for interpreter detection."
+  (interactive)
+  (let* ((interp (save-excursion
+                   (goto-char (point-min))
+                   (if (looking-at auto-mode-interpreter-regexp)
+                       (match-string 2))))
+         (mode (when interp
+                 (assoc-default
+                  (file-name-nondirectory interp)
+                  (mapcar (lambda (e)
+                            (cons
+                             (format "\\`%s\\'" (car e))
+                             (cdr e)))
+                          interpreter-mode-alist)
+                  #'string-match-p))))
+    (if interp
+        (if mode
+            (message "Interpreter: %s\nMode that would be set: %s"
+                     interp mode)
+          (message "Interpreter: %s\nNo matching mode in interpreter-mode-alist"
+                   interp))
+      (message "No interpreter directive found using auto-mode-interpreter-regexp"))))
+
 
 (provide 'custom-functions)

@@ -1,9 +1,16 @@
+;; -*- lexical-binding: t; -*-
+
 ;;
 ;; Keys configuration
 ;;
 
-(require 'user-macros)
-(require 'custom-functions)
+
+;; Set C-x c to quit, not C-x C-c
+(global-set-key [(control x) (control c)]
+                (defun dont-kill-emacs() (interactive)
+                       (message "Use C-x c to leave emacs")))
+(global-set-key [(control x) c] 'save-buffers-kill-terminal)
+(global-set-key "\C-xc" 'save-buffers-kill-terminal)
 
 (global-set-key [pause] 'kill-this-buffer)
 (global-set-key [(control tab)] 'other-window)

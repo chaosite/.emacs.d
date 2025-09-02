@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;;
 ;; Initial Emacs load file
 ;;
@@ -8,8 +9,8 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 ;; Try: $ gpg --homedir .emacs.d/elpa/gnupg --keyserver keyserver.ubuntu.com --receive-keys F8D0B4E7D2D21191
-(add-to-list 'package-archives
-             '("user42" . "https://download.tuxfamily.org/user42/elpa/packages/") t)
+;; (add-to-list 'package-archives
+;;             '("user42" . "https://download.tuxfamily.org/user42/elpa/packages/") t)
 
 ;; Add the given path to the load-path variable.
 (defun add-to-load-path (path-string)
@@ -66,12 +67,6 @@
 
 ")
 
-;; load theme
-(use-package zenburn-theme
-  :ensure t
-  :config
-  (load-theme 'zenburn t)
-  (enable-theme 'zenburn))
 
 ;; Load keys the last, in order to override bad key bindings
 (require 'keys)
@@ -88,7 +83,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(Linum-format "%7i ")
  '(bell-volume 0)
  '(blink-cursor-mode nil)
  '(blink-matching-paren t)
@@ -96,13 +90,17 @@
  '(frame-brackground-mode 'dark)
  '(global-font-lock-mode t nil (font-lock))
  '(indent-tabs-mode nil)
+ '(jiralib-update-issue-fields-exclude-list :components)
  '(linum-format " %6d ")
  '(load-home-init-file t t)
  '(main-line-separator-style 'chamfer)
- '(nyan-wavy-trail t)
- '(org-agenda-files '("~/org/agenda/tasks.org") t)
+ '(org-agenda-files '("~/org/agenda/tasks.org"))
  '(package-selected-packages
-   '(company-tabnine go-mode vue-mode google-c-style clang-format+ company-coq proof-general lua-mode auto-compile use-package all-the-icons-ivy-rich amx auctex auctex-latexmk capnp-mode company company-quickhelp counsel-projectile diminish elpy find-file-in-project flycheck forge ivy ivy-rich latex-pretty-symbols lsp-mode magit nyan-mode powerline projectile rainbow-mode string-inflection tide web-mode zenburn-theme counsel cmake-mode))
+   '(0blayout aider all-the-icons-ivy-rich amx auctex-latexmk auto-compile blackout capnp-mode clang-format+
+              company-quickhelp consult corfu counsel-projectile eglot eldoc-box find-file-in-project forge format-all
+              google-c-style latex-pretty-symbols lua-mode marginalia nerd-icons-completion nerd-icons-corfu orderless
+              org-jira powerline protobuf-ts-mode python-black pyvenv rainbow-mode sqlite3 ssh-config-mode
+              string-inflection tide vertico vue-mode web-mode zenburn-theme))
  '(powerline-color1 "#222912")
  '(powerline-color2 "#09150F")
  '(proof-three-window-mode-policy 'hybrid)

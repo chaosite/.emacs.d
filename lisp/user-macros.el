@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 ;; Put the macros that you want to save here.
 ;; You can do it this way:
 ;;   - Record a macro.
